@@ -1,7 +1,7 @@
 package com.example.backend.controller;
 
 import com.example.backend.security.JwtUtil;
-import com.example.backend.security.MyUserDetailsService;
+import com.example.backend.service.MyUserDetailsService;
 import com.example.backend.service.UserService;
 import com.example.backend.model.User;
 
@@ -23,7 +23,7 @@ public class AuthController {
     private MyUserDetailsService userDetailsService;
 
     @Autowired
-    private UserService userService; // <--- injecte UserService
+    private UserService userService;
 
     @Autowired
     private JwtUtil jwtUtil;
