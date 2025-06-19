@@ -5,7 +5,11 @@ import com.example.backend.service.MyUserDetailsService;
 import com.example.backend.service.UserService;
 import com.example.backend.model.User;
 
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -23,30 +27,35 @@ public class AuthController {
     private MyUserDetailsService userDetailsService;
 
     @Autowired
-    private UserService userService;
+    private UserService userService; // Service pour la gestion des utilisateurs
 
     @Autowired
     private JwtUtil jwtUtil;
 
     @PostMapping("/login")
-    public String login(@RequestBody AuthRequest authRequest) throws Exception {
+    public ResponseEntity<?> login(@RequestBody AuthRequest authRequest) throws Exception {
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword()));
         } catch (Exception e) {
-            throw new Exception("Nom d'utilisateur ou mot de passe incorrect");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Identifiants incorrects"));
         }
 
         final UserDetails userDetails = userDetailsService.loadUserByUsername(authRequest.getUsername());
         final String token = jwtUtil.generateToken(userDetails.getUsername());
 
-        return token;
+        return ResponseEntity.ok(Map.of("token", token));
     }
 
     @PostMapping("/register")
-    public String register(@RequestBody AuthRequest authRequest) {
-        User newUser = userService.createUser(authRequest.getUsername(), authRequest.getPassword());
-        return "Utilisateur créé avec succès : " + newUser.getUsername();
+    public ResponseEntity<?> register(@RequestBody AuthRequest authRequest) {
+        try {
+            User newUser = userService.createUser(authRequest.getUsername(), authRequest.getPassword());
+            return ResponseEntity.ok(Map.of("message", "Utilisateur créé avec succès : " + newUser.getUsername()));
+        } catch (RuntimeException e) {
+            // Gestion de l'erreur utilisateur déjà existant
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
     }
 }
 

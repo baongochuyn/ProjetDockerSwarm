@@ -31,6 +31,7 @@ function Connexion() {
 
       alert(`Bienvenue, ${username} !`);
       localStorage.setItem('token', data.token);
+      navigate('/bienvenue', { state: { username } });
 
     } catch (err) {
       alert("Erreur lors de la connexion");

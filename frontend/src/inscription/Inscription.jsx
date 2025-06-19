@@ -5,6 +5,7 @@ import './Inscription.css';
 function Inscription() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const navigate = useNavigate(); // <-- Important, ici !
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -21,17 +22,21 @@ function Inscription() {
         body: JSON.stringify({ username, password }),
       });
 
-      const data = await response.json();
+      let data;
+      try {
+        data = await response.json();
+      } catch {
+        data = {};
+      }
 
       if (!response.ok) {
-        alert(data.message); // "Nom d’utilisateur déjà pris"
+        alert(data.message || "Erreur inconnue lors de l'inscription");
         return;
       }
 
-      alert(data.message); // "Inscription réussie"
+      alert(data.message || "Inscription réussie");
 
       navigate('/connexion');
-
     } catch (err) {
       alert("Erreur lors de l'inscription");
     }
