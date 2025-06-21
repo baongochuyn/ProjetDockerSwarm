@@ -1,0 +1,60 @@
+version: "3.9"
+services:
+  postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_INITDB_ARGS: "-E 'UTF-8' --lc-collate=C --lc-ctype=C"
+    env_file:
+      - .env
+    volumes:
+      - backend-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+    networks:
+      - swarm-network
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+  backend:
+    image: baongochuynh/back-end:latest
+    depends_on:
+      - postgres
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${DB_NAME}
+      SPRING_DATASOURCE_USERNAME: ${DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "8080:8080"
+    networks:
+      - swarm-network
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+  frontend:
+    image: baongochuynh/front-end:latest
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - swarm-network
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+
+networks:
+  swarm-network:
+    driver: overlay
+
+volumes:
+  backend-db-data:
+    name: backend-db-data
