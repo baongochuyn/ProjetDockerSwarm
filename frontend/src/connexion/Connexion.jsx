@@ -16,7 +16,7 @@ function Connexion() {
     }
 
     try {
-      const response = await fetch('http://localhost:8080/auth/login', {
+      const response = await fetch('http://backend:8080/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
